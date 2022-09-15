@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "ledpcb")(type "KiCad")(uri "/home/ente/src/3nt3/leds/ledpcb.pretty")(options "")(descr ""))
+  (lib (name "Library")(type "KiCad")(uri "${KIPRJMOD}/lib/Library.pretty")(options "")(descr ""))
+)
