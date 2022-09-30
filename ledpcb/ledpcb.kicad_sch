@@ -2366,7 +2366,7 @@
     (uuid 89f7100f-f1cf-4330-8df9-8c60a680a26a)
     (property "Reference" "J1" (id 0) (at 31.75 59.563 0))
     (property "Value" "Conn_01x02_Female" (id 1) (at 31.75 62.103 0))
-    (property "Footprint" "Connector_PinHeader_1.27mm:PinHeader_1x02_P1.27mm_Vertical" (id 2) (at 31.115 64.643 0)
+    (property "Footprint" "Connector_PinHeader_2.00mm:PinHeader_1x02_P2.00mm_Vertical" (id 2) (at 31.115 64.643 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 31.115 64.643 0)
@@ -2930,7 +2930,7 @@
       (reference "#PWR026") (unit 1) (value "+5V") (footprint "")
     )
     (path "/89f7100f-f1cf-4330-8df9-8c60a680a26a"
-      (reference "J1") (unit 1) (value "Conn_01x02_Female") (footprint "Connector_PinHeader_1.27mm:PinHeader_1x02_P1.27mm_Vertical")
+      (reference "J1") (unit 1) (value "Conn_01x02_Female") (footprint "Connector_PinHeader_2.00mm:PinHeader_1x02_P2.00mm_Vertical")
     )
     (path "/bcaaa89d-39d9-4099-8fd8-7140c3fea82e"
       (reference "J2") (unit 1) (value "USB_C_Receptacle_USB2.0") (footprint "Connector_USB:USB_C_Receptacle_Palconn_UTC16-G")
