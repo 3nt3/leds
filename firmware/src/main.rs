@@ -1,20 +1,16 @@
-use core::time;
 use std::thread;
 use std::time::Duration;
 
-use embedded_hal::adc::Channel;
-use embedded_hal::digital::v2::OutputPin;
 use esp_idf_hal::ledc::config::TimerConfig;
 use esp_idf_hal::ledc::{Channel, Timer};
 use esp_idf_hal::peripherals::Peripherals;
 use esp_idf_hal::prelude::*;
-use esp_idf_sys::EspError;
 
 fn main() -> anyhow::Result<()> {
     esp_idf_sys::link_patches();
 
     let peripherals = Peripherals::take().unwrap();
-    let config = TimerConfig::default().frequency(10.kHz().into());
+    let config = TimerConfig::default().frequency(1.kHz().into());
     let timer = Timer::new(peripherals.ledc.timer0, &config)?;
 
     let red_pin = peripherals.pins.gpio26.into_output()?;
@@ -31,27 +27,23 @@ fn main() -> anyhow::Result<()> {
 
     let max_duty = r_channel.get_max_duty();
     println!("max duty: {max_duty}");
-    for r in 0..=255 {
-        r_channel.set_duty(r)?;
-        println!("r: {r}");
-        thread::sleep(Duration::from_millis(10));
-    }
 
     loop {
-        for r in 1..0xFF {
-            println!("rgb: {r} {g} {b}");
-            r_channel.set_duty(max_duty * (r / 0xFF))?;
+        for r in 1..=0xFF {
+            //println!("rgb: {r} 0 0");
+            r_channel.set_duty(((max_duty as f32) * (1.0 - (r as f32 / 0xFF as f32))) as u32)?;
             thread::sleep(Duration::from_millis(10));
         }
-        for g in 1..0xFF {
-            println!("rgb: {r} {g} {b}");
-            g_channel.set_duty(max_duty * (g / 0xFF))?;
+        for g in 1..=0xFF {
+            // println!("rgb: 255 {g} 0");
+            g_channel.set_duty(((max_duty as f32) * (1.0 - (g as f32 / 0xFF as f32))) as u32)?;
             thread::sleep(Duration::from_millis(10));
         }
-        for b in 1..0xFF {
-            println!("rgb: {r} {g} {b}");
-            b_channel.set_duty(max_duty * (b / 0xFF))?;
+        for b in 1..=0xFF {
+            // println!("rgb: 255 255 {b}");
+            b_channel.set_duty(((max_duty as f32) * (1.0 - (b as f32 / 0xFF as f32))) as u32)?;
             thread::sleep(Duration::from_millis(10));
         }
+        thread::sleep(Duration::from_millis(100));
     }
 }
