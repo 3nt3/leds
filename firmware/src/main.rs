@@ -6,7 +6,6 @@ use esp_idf_hal::ledc::config::TimerConfig;
 use esp_idf_hal::ledc::{Channel, Timer};
 use esp_idf_hal::peripherals::Peripherals;
 use esp_idf_hal::prelude::*;
-use esp_idf_sys::EspError;
 
 struct RGBPins<R, G, B> {
     r_pin: R,
@@ -37,36 +36,74 @@ fn main() -> anyhow::Result<()> {
         g_pin: g_channel,
         b_pin: b_channel,
     };
-    // let mut rgb_pins = RGBPins::new(&mut red_pin, &mut green_pin, &mut blue_pin);
 
     println!("max duty: {max_duty}");
     loop {
-        rgb_pins.set_rgb(0xff, 0, 0);
-        thread::sleep(Duration::from_millis(1000));
-        rgb_pins.set_rgb(0, 0xff, 0);
-        thread::sleep(Duration::from_millis(1000));
-        rgb_pins.set_rgb(0, 0, 0xff);
-        thread::sleep(Duration::from_millis(1000));
+        rgb_pins.trans();
+        rgb_pins.off();
+        thread::sleep(Duration::from_millis(3000));
     }
 }
 
 impl<R: PwmPin<Duty = u32>, G: PwmPin<Duty = u32>, B: PwmPin<Duty = u32>> RGBPins<R, G, B> {
     fn set_rgb(&mut self, r: u8, g: u8, b: u8) {
-        println!("rgb: {r} {g} {b}");
         self.off();
+
+        println!("rgb {} {} {}", scale_down(r), scale_down(g), scale_down(b));
+        let r_lin = to_linear(scale_down(r));
+        let g_lin = to_linear(scale_down(g));
+        let b_lin = to_linear(scale_down(b));
+        println!("rgb lin {r_lin} {g_lin} {b_lin}");
+
         let max_duty = self.r_pin.get_max_duty();
         self.r_pin
-            .set_duty(((max_duty as f32) * (1.0 - (r as f32 / 0xFF as f32))) as u32);
+            .set_duty((max_duty as f32 * (1.0 - r_lin)) as u32);
         self.g_pin
-            .set_duty(((max_duty as f32) * (1.0 - (g as f32 / 0xFF as f32))) as u32);
+            .set_duty((max_duty as f32 * (1.0 - g_lin)) as u32);
         self.b_pin
-            .set_duty(((max_duty as f32) * (1.0 - (b as f32 / 0xFF as f32))) as u32);
+            .set_duty((max_duty as f32 * (1.0 - b_lin)) as u32);
     }
-
     fn off(&mut self) {
         let max_duty = self.r_pin.get_max_duty();
         self.r_pin.set_duty(max_duty);
         self.g_pin.set_duty(max_duty);
         self.b_pin.set_duty(max_duty);
     }
+
+    fn trans(&mut self) {
+        self.off();
+
+        let blue_r = 91;
+        let blue_g = 206;
+        let blue_b = 250;
+
+        let pink_r = 245;
+        let pink_g = 245;
+        let pink_b = 184;
+
+        self.set_rgb(blue_r, blue_g, blue_b);
+        thread::sleep(Duration::from_millis(1000));
+        self.set_rgb(pink_r, pink_g, pink_b);
+        thread::sleep(Duration::from_millis(1000));
+        self.set_rgb(0xff, 0xff, 0xff);
+        thread::sleep(Duration::from_millis(1000));
+        self.set_rgb(pink_r, pink_g, pink_b);
+        thread::sleep(Duration::from_millis(1000));
+        self.set_rgb(blue_r, blue_g, blue_b);
+        thread::sleep(Duration::from_millis(1000));
+    }
+}
+
+fn to_linear(x: f32) -> f32 {
+    // if x.lt_eq(&T::from_f64(0.04045)) => T::from_f64(1.0 / 12.92) * &x,
+    // else => x.clone().mul_add(T::from_f64(1.0 / 1.055), T::from_f64(0.055 / 1.055)).powf(T::from_f64(2.4)),
+    if x <= 0.04045 {
+        1.0 / 12.92 * x
+    } else {
+        x.mul_add(1.0 / 1.055, 0.055 / 1.055).powf(2.4)
+    }
+}
+
+fn scale_down(x: u8) -> f32 {
+    (x as f32) * (1.0 / 255.0)
 }
